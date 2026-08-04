@@ -11,6 +11,11 @@ rute.use(wajibLogin, tolakSuperAdmin);
 
 const uang = (v) => Number(v ?? 0);
 
+// Formulir HTML mengirim field yang tidak diisi sebagai teks kosong, bukan null.
+// PostgreSQL menolak teks kosong untuk kolom angka dan tanggal, dan galatnya
+// muncul sebagai kesalahan server yang tidak menjelaskan apa-apa ke pengguna.
+const nol = (v) => (v === '' || v === undefined ? null : v);
+
 async function nomorBaru(c, tahun, bulan) {
   const { rows } = await c.query(
     `SELECT COALESCE(max(substring(nomor from 13)::int), 0) + 1 AS n
@@ -99,8 +104,8 @@ rute.post('/', wajibPeran('admin'), async (req, res) => {
      VALUES ($1,'draft',$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
     [
       `DRAFT-${Date.now()}`, w[0].kota_id, w[0].area_id, w[0].region_id, b.kategori_id,
-      b.periode_tahun, b.periode_bulan, b.judul, b.tujuan ?? null, b.tgl_mulai, b.tgl_selesai,
-      b.lokasi ?? null, b.penerima_id ?? null, b.tgl_dibutuhkan ?? null, req.pengguna.id,
+      b.periode_tahun, b.periode_bulan, b.judul, nol(b.tujuan), b.tgl_mulai, b.tgl_selesai,
+      nol(b.lokasi), nol(b.penerima_id), nol(b.tgl_dibutuhkan), req.pengguna.id,
     ],
   );
   res.status(201).json(await isiPengajuan(rows[0].id));
@@ -136,6 +141,42 @@ rute.put('/:id/item', wajibPeran('admin'), async (req, res) => {
     return null;
   });
   if (hasil) return res.status(hasil.kode).json({ pesan: hasil.pesan });
+  res.json(await isiPengajuan(req.params.id));
+});
+
+// Menyunting draft. Tanpa ini, satu salah ketik memaksa membuat pengajuan baru
+// dari nol - dan Admin akan meninggalkan draft menggantung di daftar.
+rute.patch('/:id', wajibPeran('admin'), async (req, res) => {
+  const b = req.body ?? {};
+  const { rows: ada } = await q('SELECT status FROM pengajuan WHERE id = $1', [req.params.id]);
+  if (!ada.length) return res.status(404).json({ pesan: 'Pengajuan tidak ditemukan.' });
+  if (!['draft', 'perlu_revisi'].includes(ada[0].status))
+    return res.status(409).json({ pesan: 'Pengajuan hanya bisa diubah saat draft atau perlu revisi.' });
+
+  let wilayah = null;
+  if (b.kota_id) {
+    const { rows } = await q(
+      `SELECT k.id AS kota_id, a.id AS area_id, r.id AS region_id
+         FROM kota k JOIN area a ON a.id = k.area_id JOIN region r ON r.id = a.region_id
+        WHERE k.id = $1 AND k.aktif`, [b.kota_id]);
+    if (!rows.length) return res.status(400).json({ pesan: 'Kota tidak ditemukan atau tidak aktif.' });
+    wilayah = rows[0];
+  }
+
+  await q(
+    `UPDATE pengajuan SET
+        kota_id = COALESCE($1, kota_id), area_id = COALESCE($2, area_id), region_id = COALESCE($3, region_id),
+        kategori_id = COALESCE($4, kategori_id), periode_tahun = COALESCE($5, periode_tahun),
+        periode_bulan = COALESCE($6, periode_bulan), judul = COALESCE($7, judul), tujuan = COALESCE($8, tujuan),
+        tgl_mulai = COALESCE($9, tgl_mulai), tgl_selesai = COALESCE($10, tgl_selesai),
+        lokasi = COALESCE($11, lokasi), penerima_id = COALESCE($12, penerima_id),
+        tgl_dibutuhkan = COALESCE($13, tgl_dibutuhkan)
+      WHERE id = $14`,
+    [wilayah?.kota_id ?? null, wilayah?.area_id ?? null, wilayah?.region_id ?? null,
+     nol(b.kategori_id), nol(b.periode_tahun), nol(b.periode_bulan), nol(b.judul), nol(b.tujuan),
+     nol(b.tgl_mulai), nol(b.tgl_selesai), nol(b.lokasi), nol(b.penerima_id), nol(b.tgl_dibutuhkan),
+     req.params.id],
+  );
   res.json(await isiPengajuan(req.params.id));
 });
 
