@@ -1,5 +1,6 @@
 import { q } from './db.js';
 import { PEMEGANG } from './status.js';
+import { antrekan } from './wa.js';
 
 /**
  * Notifikasi hanya untuk hal yang menuntut tindakan, atau yang menyangkut
@@ -17,10 +18,13 @@ export async function beriTahu(c, { peran, pengguna_id, pengajuan_id, jenis, jud
     target = rows[0].id;
   }
   if (!target) return;
-  await c.query(
-    'INSERT INTO notifikasi (pengguna_id, pengajuan_id, jenis, judul, isi) VALUES ($1,$2,$3,$4,$5)',
+  const { rows } = await c.query(
+    'INSERT INTO notifikasi (pengguna_id, pengajuan_id, jenis, judul, isi) VALUES ($1,$2,$3,$4,$5) RETURNING id',
     [target, pengajuan_id, jenis, judul, isi ?? null],
   );
+  // Masuk antrean, bukan dikirim di sini. Kegagalan WhatsApp tidak boleh
+  // menggagalkan transaksi yang sedang berjalan.
+  await antrekan(c, rows[0].id, target);
 }
 
 export const pemegangStatus = (status) => PEMEGANG[status] ?? null;
