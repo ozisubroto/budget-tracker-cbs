@@ -17,6 +17,7 @@ import { rute as lpj } from './routes/lpj.js';
 import { rute as laporan } from './routes/laporan.js';
 import { rute as delegasi } from './routes/delegasi.js';
 import { rute as notifikasi } from './routes/notifikasi.js';
+import { rute as lampiran } from './routes/lampiran.js';
 import { jadwalkanSinkron } from './lib/sinkronSales.js';
 import { jalankanPekerjaWa } from './lib/wa.js';
 
@@ -55,6 +56,7 @@ app.use('/api/lpj', lpj);
 app.use('/api/laporan', laporan);
 app.use('/api/delegasi', delegasi);
 app.use('/api/notifikasi', notifikasi);
+app.use('/api/lampiran', lampiran);
 
 // Antarmuka React disajikan dari proses yang sama dengan API. Satu service, satu
 // domain - tidak ada CORS yang perlu diatur dan tidak ada tagihan kedua.
