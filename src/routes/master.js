@@ -78,3 +78,83 @@ rute.patch('/penerima/:id', wajibPeran('finance'), async (req, res) => {
   if (!rows.length) return res.status(404).json({ pesan: 'Penerima tidak ditemukan.' });
   res.json(rows[0]);
 });
+
+// ---------------------------------------------------------------- pengaturan & kategori
+
+// Dua pengaturan menentukan seberapa banyak yang lolos tanpa pengawasan, jadi
+// tidak boleh berubah hanya karena satu akun teknis menekan simpan.
+const WAJIB_ATASAN_3 = ['batas_pagu_atasan_2', 'ambang_cost_ratio'];
+
+rute.get('/pengaturan/riwayat', wajibPeran('super_admin', 'atasan_3'), async (_req, res) => {
+  const { rows } = await q(
+    `SELECT p.*, pu.nama AS diusulkan_oleh_nama, ps.nama AS disetujui_oleh_nama
+       FROM pengaturan p
+       JOIN pengguna pu ON pu.id = p.diusulkan_oleh
+       LEFT JOIN pengguna ps ON ps.id = p.disetujui_oleh
+      ORDER BY p.kode, p.berlaku_sejak DESC`,
+  );
+  res.json(rows);
+});
+
+rute.post('/pengaturan', wajibPeran('super_admin'), async (req, res) => {
+  const { kode, nilai, catatan } = req.body ?? {};
+  if (!kode || nilai === undefined) return res.status(400).json({ pesan: 'Kode dan nilai wajib diisi.' });
+  const perluPersetujuan = WAJIB_ATASAN_3.includes(kode);
+
+  const { rows } = await q(
+    `INSERT INTO pengaturan (kode, nilai, berlaku_sejak, status, diusulkan_oleh, disetujui_oleh, disetujui_pada, catatan)
+     VALUES ($1,$2,now(),$3,$4,NULL,NULL,$5) RETURNING *`,
+    [kode, nilai, perluPersetujuan ? 'menunggu_persetujuan' : 'berlaku', req.pengguna.id, catatan ?? null],
+  );
+  res.status(201).json({
+    pesan: perluPersetujuan
+      ? 'Usulan tersimpan. Nilai lama tetap berlaku sampai Atasan 3 menyetujui.'
+      : 'Pengaturan berlaku mulai sekarang.',
+    pengaturan: rows[0],
+  });
+});
+
+rute.post('/pengaturan/:id/setujui', wajibPeran('atasan_3'), async (req, res) => {
+  const { rows } = await q(
+    `UPDATE pengaturan SET status = 'berlaku', disetujui_oleh = $1, disetujui_pada = now(), berlaku_sejak = now()
+      WHERE id = $2 AND status = 'menunggu_persetujuan' RETURNING *`,
+    [req.atasNama ?? req.pengguna.id, req.params.id],
+  );
+  if (!rows.length) return res.status(404).json({ pesan: 'Usulan tidak ditemukan atau sudah diputuskan.' });
+  res.json({ pesan: 'Pengaturan berlaku mulai sekarang.', pengaturan: rows[0] });
+});
+
+rute.post('/kategori', wajibPeran('super_admin'), async (req, res) => {
+  const { kode, nama, urutan } = req.body ?? {};
+  if (!kode || !nama) return res.status(400).json({ pesan: 'Kode dan nama kategori wajib diisi.' });
+  const { rows } = await q(
+    'INSERT INTO kategori_budget (kode, nama, urutan) VALUES ($1,$2,$3) RETURNING *',
+    [kode, nama, urutan ?? 99],
+  );
+  res.status(201).json(rows[0]);
+});
+
+// Kategori yang sudah pernah dipakai tidak boleh dihapus, hanya dinonaktifkan -
+// menghapusnya membuat pengajuan dan laporan lama kehilangan kategorinya.
+rute.patch('/kategori/:id', wajibPeran('super_admin'), async (req, res) => {
+  const { rows } = await q(
+    'UPDATE kategori_budget SET nama = COALESCE($1, nama), aktif = COALESCE($2, aktif), urutan = COALESCE($3, urutan) WHERE id = $4 RETURNING *',
+    [req.body?.nama ?? null, req.body?.aktif ?? null, req.body?.urutan ?? null, req.params.id],
+  );
+  if (!rows.length) return res.status(404).json({ pesan: 'Kategori tidak ditemukan.' });
+  res.json(rows[0]);
+});
+
+rute.get('/pengguna', wajibPeran('super_admin', 'atasan_1', 'atasan_2', 'atasan_3', 'finance', 'admin'), async (_req, res) => {
+  const { rows } = await q('SELECT id, nama, email, peran, no_wa, aktif FROM pengguna ORDER BY peran');
+  res.json(rows);
+});
+
+rute.patch('/pengguna/:id', wajibPeran('super_admin'), async (req, res) => {
+  const { rows } = await q(
+    'UPDATE pengguna SET nama = COALESCE($1, nama), no_wa = COALESCE($2, no_wa), aktif = COALESCE($3, aktif) WHERE id = $4 RETURNING id, nama, email, peran, no_wa, aktif',
+    [req.body?.nama ?? null, req.body?.no_wa ?? null, req.body?.aktif ?? null, req.params.id],
+  );
+  if (!rows.length) return res.status(404).json({ pesan: 'Pengguna tidak ditemukan.' });
+  res.json(rows[0]);
+});
