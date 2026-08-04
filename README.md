@@ -159,11 +159,35 @@ diperbaiki sampai benar, karena uangnya sudah keluar.
 termurah dan paling ampuh, karena konsekuensinya langsung terasa oleh yang
 menunda.
 
+## Laporan
+
+```
+GET /api/laporan/serapan?tahun=2026[&bulan=&region_id=&versi_id=]
+GET /api/laporan/serapan/area      penelusuran ke alokasi area
+GET /api/laporan/serapan/kota      pemakaian dan cost ratio per kota
+GET /api/laporan/serapan/pengajuan?tahun=&bulan=&region_id=&kategori_id=
+GET /api/laporan/pengecualian      over-budget, melebihi pagu, dan jalur cepat
+GET /api/laporan/lpj               disiplin, menunggak, selisih rencana vs realisasi
+GET /api/laporan/kecepatan         rata-rata hari per tahap dan yang menggantung
+GET /api/laporan/serapan/excel     ekspor
+GET /api/laporan/pengecualian/excel
+```
+
+Seluruh angka berasal dari `src/lib/laporan.js` dan view pagu — satu rumus, satu
+sumber. Setiap sel dapat ditelusuri sampai daftar pengajuan pembentuknya lewat
+`/serapan/pengajuan`, dan uji otomatis memastikan jumlahnya sama persis.
+
+Parameter `versi_id` menampilkan angka sesuai plafon yang berlaku pada versi
+master plan tertentu, bukan yang terkini. Ini pasangan dari penanda revisi
+retroaktif: penanda memberi tahu ada perubahan, `versi_id` memperlihatkan angka
+aslinya.
+
 ## Menjalankan uji
 
 ```bash
 PORT=3000 npm run uji:alur        # 24 pemeriksaan, 8 skenario alur approval
 PORT=3000 npm run uji:realisasi   # 20 pemeriksaan, 5 skenario realisasi dan LPJ
+PORT=3000 npm run uji:laporan     # 20 pemeriksaan konsistensi laporan
 ```
 
 Keduanya membuat pengajuan sungguhan. **Jalankan hanya pada basis data
@@ -171,6 +195,6 @@ pengembangan, tidak pernah pada produksi.**
 
 ## Yang belum ada
 
-Fase 4 dan seterusnya: empat laporan manajemen, dan notifikasi WhatsApp beserta
-delegasi berjangka. Notifikasi dalam aplikasi sudah berfungsi. Urutannya ada di
+Fase 5: notifikasi WhatsApp dan delegasi berjangka. Notifikasi dalam aplikasi
+sudah berfungsi sejak Fase 2. Urutannya ada di
 `docs/superpowers/plans/2026-08-04-budget-request-approval-plan.md`.
