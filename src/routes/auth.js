@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import { ruteAman } from '../lib/rute.js';
 import bcrypt from 'bcryptjs';
 import { q } from '../lib/db.js';
 import { buatToken, wajibLogin } from '../lib/auth.js';
 
-export const rute = Router();
+export const rute = ruteAman();
 
 rute.post('/masuk', async (req, res) => {
   const { email, sandi } = req.body ?? {};

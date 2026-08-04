@@ -1,8 +1,8 @@
-import { Router } from 'express';
+import { ruteAman } from '../lib/rute.js';
 import { q } from '../lib/db.js';
 import { wajibLogin } from '../lib/auth.js';
 
-export const rute = Router();
+export const rute = ruteAman();
 rute.use(wajibLogin);
 
 // Hierarki Kota -> Area -> Region. Admin memilih kota; area dan region terisi
