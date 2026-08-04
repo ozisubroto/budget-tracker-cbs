@@ -9,6 +9,8 @@ import { rute as plan } from './routes/plan.js';
 import { rute as pagu } from './routes/pagu.js';
 import { rute as sinkron } from './routes/sinkron.js';
 import { rute as pengajuan } from './routes/pengajuan.js';
+import { rute as realisasi } from './routes/realisasi.js';
+import { rute as lpj } from './routes/lpj.js';
 import { jadwalkanSinkron } from './lib/sinkronSales.js';
 
 const app = express();
@@ -41,6 +43,8 @@ app.use('/api/plan', plan);
 app.use('/api/pagu', pagu);
 app.use('/api/sinkron', sinkron);
 app.use('/api/pengajuan', pengajuan);
+app.use('/api/pengajuan', realisasi);
+app.use('/api/lpj', lpj);
 
 app.use((_req, res) => res.status(404).json({ pesan: 'Alamat tidak ditemukan.' }));
 
