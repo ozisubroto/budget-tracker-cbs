@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import Shell from '../komponen/Shell.jsx';
 import { api, sesi, rp, persen, tgl, NAMA_BULAN } from '../api.js';
 import { usePanggil, Pil, Memuat, Modal, Pesan } from '../komponen/dasar.jsx';
+import Lampiran from '../komponen/Lampiran.jsx';
 
 const PEMEGANG = {
   menunggu_atasan_1: 'atasan_1', menunggu_atasan_2: 'atasan_2',
@@ -88,6 +89,9 @@ export default function DetailPengajuan() {
                 <div><div className="k">Penerima</div><div className="v" style={{ fontSize: 14 }}>{d.penerima ?? '—'}</div>
                   <div className="sub">{(d.jenis_penerima ?? '').replace('_', ' ')}</div></div></div>
             </section>
+
+            <Lampiran pemilikJenis="pengajuan" pemilikId={id}
+              bisaUbah={!['ditolak', 'dibatalkan'].includes(d.status)} />
 
             <section className="card">
               <div className="chead"><h3>Riwayat</h3></div>

@@ -72,7 +72,10 @@ export function PengajuanBaru() {
   const simpan = async () => {
     setSibuk(true); setGalat(null);
     try {
-      const p = await api.post('/pengajuan', f);
+      // Field kosong dikirim sebagai null, bukan teks kosong - kolom angka dan
+      // tanggal di basis data menolak teks kosong.
+      const bersih = Object.fromEntries(Object.entries(f).map(([k, v]) => [k, v === '' ? null : v]));
+      const p = await api.post('/pengajuan', bersih);
       await api.put(`/pengajuan/${p.id}/item`, { item });
       nav(`/pengajuan/${p.id}`);
     } catch (e) { setGalat(e.message); } finally { setSibuk(false); }
@@ -166,8 +169,8 @@ export function PengajuanBaru() {
           </section>
 
           <section className="card">
-            <p className="sub">Pengajuan disimpan sebagai draft lebih dulu. Setelah itu Anda bisa memeriksa sisa pagu dan
-              cost ratio sebelum benar-benar mengirimnya.</p>
+            <p className="sub">Pengajuan disimpan sebagai draft lebih dulu. Setelah itu Anda bisa mengunggah lampiran,
+              memeriksa sisa pagu dan cost ratio, lalu mengirimnya.</p>
             <div className="aksi">
               <Link className="btn ghost" to="/pengajuan">Batal</Link>
               <button className="btn primary" onClick={simpan}
