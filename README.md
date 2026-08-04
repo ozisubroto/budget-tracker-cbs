@@ -102,8 +102,41 @@ penyimpanan yang penuh akan ikut mematikan basis data.
 **Uji pemulihan cadangan sekali** sebelum dipakai sungguhan. Cadangan yang belum
 pernah diuji bukan cadangan.
 
+## Mengunggah master plan
+
+Hanya Super Admin. Berkas Excel wajib punya sheet `Plafon Region` dan
+`Alokasi Area` dengan kolom Region, Area, Kategori, Bulan, dan nominalnya.
+
+```bash
+curl -X POST https://<domain>/api/plan/unggah \
+  -H "authorization: Bearer <token>" \
+  -F tahun=2026 -F "berkas=@Master_Plan_Budget_2026_CBS.xlsx"
+```
+
+Validasi menolak seluruh berkas bila ada satu baris bermasalah, dan menyebutkan
+baris mana. Yang diperiksa: nama region, area, dan kategori harus ada di master;
+area harus benar-benar milik region yang disebut; setiap region dan kategori
+harus punya dua belas bulan; dan jumlah alokasi area harus **persis sama** dengan
+plafon region untuk setiap kombinasi.
+
+Versi pertama sebuah tahun langsung berlaku selama belum ada pengajuan tercatat
+di tahun itu. Setelah pengajuan pertama masuk, versi berikutnya wajib disetujui
+Atasan 3 lewat `POST /api/plan/versi/:id/setujui`, dan plafon baru tidak boleh
+turun di bawah yang sudah terserap.
+
+## Memantau pagu
+
+```
+GET /api/pagu/ringkasan?tahun=2026
+GET /api/pagu/region?tahun=2026&bulan=8
+GET /api/pagu/area?tahun=2026&bulan=8&region_id=3
+```
+
+Seluruh angka berasal dari view `v_pagu_region` dan `v_pagu_area` — satu rumus,
+satu sumber. Tidak ada layar atau laporan yang boleh menghitung ulang sendiri.
+
 ## Yang belum ada
 
-Fase 1 dan seterusnya: mesin pagu, unggahan master plan, form pengajuan, alur
-approval, realisasi, LPJ, laporan, dan notifikasi. Urutannya ada di
+Fase 2 dan seterusnya: form pengajuan, alur approval, realisasi, LPJ, laporan,
+dan notifikasi. Urutannya ada di
 `docs/superpowers/plans/2026-08-04-budget-request-approval-plan.md`.
