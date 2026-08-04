@@ -11,6 +11,7 @@ import { Realisasi, Lpj } from './halaman/Keuangan.jsx';
 import { Pagu, MasterPlan } from './halaman/Anggaran.jsx';
 import Laporan from './halaman/Laporan.jsx';
 import { Pengaturan, Delegasi, Notifikasi } from './halaman/Sistem.jsx';
+import Penerima from './halaman/Penerima.jsx';
 
 const Terkunci = ({ anak }) => (sesi.token ? anak : <Navigate to="/masuk" replace />);
 // Peran yang tidak berhak diarahkan pulang, bukan diberi layar galat - menu sudah
@@ -34,6 +35,7 @@ createRoot(document.getElementById('akar')).render(
         <Route path="/laporan" element={<Terkunci anak={<Laporan />} />} />
         <Route path="/delegasi" element={<Terkunci anak={<Delegasi />} />} />
         <Route path="/notifikasi" element={<Terkunci anak={<Notifikasi />} />} />
+        <Route path="/penerima" element={<Terkunci anak={<Penerima />} />} />
         <Route path="/pengaturan" element={<Terkunci anak={<Batasi peran={['super_admin', 'atasan_3']} anak={<Pengaturan />} />} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
