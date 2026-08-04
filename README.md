@@ -135,8 +135,42 @@ GET /api/pagu/area?tahun=2026&bulan=8&region_id=3
 Seluruh angka berasal dari view `v_pagu_region` dan `v_pagu_area` — satu rumus,
 satu sumber. Tidak ada layar atau laporan yang boleh menghitung ulang sendiri.
 
+## Realisasi & LPJ
+
+```
+POST /api/pengajuan/:id/bayar        Finance, boleh bertahap
+POST /api/pengajuan/:id/tutup        Finance, khusus vendor di bawah invoice
+POST /api/lpj/:id                    Admin, mengirim LPJ
+POST /api/lpj/:id/verifikasi         Finance, approve atau revisi
+GET  /api/lpj?menunggak=1            daftar LPJ lewat batas waktu
+```
+
+**Batas atas keras.** Total pembayaran tidak pernah boleh melebihi nominal
+disetujui, untuk semua jenis penerima, tanpa pengecualian.
+
+**Batas bawah berbeda menurut pemegang uang.** Vendor dibayar sesuai invoice dan
+sisanya dilepas oleh Finance lewat penutupan. Reimburse dan kas dibayar penuh,
+sisanya kembali lewat setoran yang dilaporkan di LPJ.
+
+**LPJ hanya punya Approve dan Revisi.** Tidak ada Reject: LPJ yang salah harus
+diperbaiki sampai benar, karena uangnya sudah keluar.
+
+**Kota dengan LPJ menunggak tidak dapat mengajukan yang baru.** Ini kontrol
+termurah dan paling ampuh, karena konsekuensinya langsung terasa oleh yang
+menunda.
+
+## Menjalankan uji
+
+```bash
+PORT=3000 npm run uji:alur        # 24 pemeriksaan, 8 skenario alur approval
+PORT=3000 npm run uji:realisasi   # 20 pemeriksaan, 5 skenario realisasi dan LPJ
+```
+
+Keduanya membuat pengajuan sungguhan. **Jalankan hanya pada basis data
+pengembangan, tidak pernah pada produksi.**
+
 ## Yang belum ada
 
-Fase 2 dan seterusnya: form pengajuan, alur approval, realisasi, LPJ, laporan,
-dan notifikasi. Urutannya ada di
+Fase 4 dan seterusnya: empat laporan manajemen, dan notifikasi WhatsApp beserta
+delegasi berjangka. Notifikasi dalam aplikasi sudah berfungsi. Urutannya ada di
 `docs/superpowers/plans/2026-08-04-budget-request-approval-plan.md`.
