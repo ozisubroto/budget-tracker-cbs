@@ -38,7 +38,7 @@ kenyamanan.
 |---|---|
 | Admin | buat pengajuan, isi LPJ, pantau draft dan revisi |
 | Atasan 1, 2, 3 | antrean persetujuan dengan konteks pagu dan cost ratio |
-| Finance | antrean bayar, pembayaran bertahap, penutupan, verifikasi LPJ |
+| Finance | master penerima, antrean bayar, pembayaran bertahap, penutupan, verifikasi LPJ |
 | Atasan 3 | persetujuan master plan dan dua pengaturan kendali |
 | Super Admin | unggah master plan, pengaturan, pengguna, delegasi darurat |
 
@@ -110,6 +110,24 @@ git push -u origin main
 `railway.json` sudah mengatur migrasi berjalan otomatis sebagai pre-deploy
 command, pemeriksaan kesehatan ke `/sehat`, dan restart saat gagal. Skema selalu
 mengikuti kode yang di-deploy tanpa langkah manual.
+
+## Sebelum pengajuan pertama
+
+Master penerima wajib diisi lebih dulu, kalau tidak Admin tidak punya apa pun
+untuk dipilih dan pengajuan tidak dapat dikirim. Masuk sebagai **Finance**, buka
+menu **Master Penerima**, lalu tambahkan minimal satu penerima.
+
+Tiga jenisnya berperilaku berbeda saat pembayaran, jadi jangan dicampur:
+
+| Jenis | Cara bayar | Sisa kembali lewat |
+|---|---|---|
+| Vendor | sesuai invoice | Finance menutup, pagu dilepas |
+| Reimburse sales | penuh | setoran yang dilaporkan di LPJ |
+| Kas | penuh | setoran yang dilaporkan di LPJ |
+
+Rekening tidak pernah diketik di form pengajuan. Admin hanya memilih dari daftar
+ini — itu menutup titik rawan yang paling umum, karena satu digit rekening yang
+diubah tetap lolos di mata orang yang memeriksa nominal.
 
 ## Lampiran
 
