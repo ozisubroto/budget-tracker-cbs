@@ -48,12 +48,31 @@ git push -u origin main
    | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` |
    | `JWT_SECRET` | hasil `openssl rand -base64 48` |
    | `JWT_TTL` | `12h` |
-   | `CORS_ORIGIN` | alamat frontend |
+   | `CORS_ORIGIN` | alamat asal frontend, lihat catatan di bawah |
 
    Gunakan sintaks referensi `${{Postgres.DATABASE_URL}}`, jangan menyalin nilai
    mentahnya. Kalau basis data diganti, referensinya ikut menyesuaikan sendiri.
 
    `PORT` diisi Railway sendiri — jangan ditetapkan manual.
+
+   **Soal `CORS_ORIGIN`.** Isinya alamat halaman web yang memanggil API ini,
+   bukan alamat API-nya sendiri. Mengisinya dengan domain service backend adalah
+   kesalahan yang paling sering terjadi dan tidak berefek apa pun.
+
+   Selama Fase 0 belum ada frontend, jadi isi dengan alamat pengembangan lokal:
+   `http://localhost:5173` — port bawaan Vite. Setelah frontend di-deploy nanti,
+   ganti dengan domain service frontend, misalnya
+   `https://budget-cbs.up.railway.app`.
+
+   Boleh diisi beberapa alamat sekaligus, dipisah koma tanpa spasi, misalnya
+   `http://localhost:5173,https://budget-cbs.up.railway.app` — berguna saat Anda
+   masih menguji dari komputer sendiri sementara versi produksi sudah jalan.
+   Tulis tanpa garis miring di akhir, karena pencocokannya persis huruf per
+   huruf.
+
+   Kalau nanti muncul galat CORS di konsol peramban, penyebabnya hampir selalu
+   satu dari tiga ini: alamatnya berbeda protokol (`http` versus `https`), ada
+   garis miring di akhir, atau nomor port-nya tidak sama.
 
 4. **Generate Domain** pada tab Settings, lalu buka `/sehat`. Balasan `sehat`
    berarti aplikasi dan basis data sudah tersambung.
