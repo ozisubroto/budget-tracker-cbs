@@ -111,6 +111,25 @@ git push -u origin main
 command, pemeriksaan kesehatan ke `/sehat`, dan restart saat gagal. Skema selalu
 mengikuti kode yang di-deploy tanpa langkah manual.
 
+## Lampiran
+
+```
+GET    /api/lampiran?pemilik_jenis=pengajuan&pemilik_id=1
+POST   /api/lampiran            multipart: berkas, pemilik_jenis, pemilik_id, jenis
+GET    /api/lampiran/:id/unduh
+DELETE /api/lampiran/:id        hanya pengunggahnya
+```
+
+PDF, gambar, Excel, atau Word. Maksimal 10 MB. Nama berkas di penyimpanan
+diacak, bukan memakai nama asli — nama asli bisa memuat karakter jalur atau
+bertabrakan dengan berkas lain.
+
+**Di Railway, `LAMPIRAN_DIR` wajib menunjuk ke Volume yang di-mount ke `/data`.**
+Tanpa itu, seluruh lampiran hilang setiap kali aplikasi di-deploy ulang, sementara
+basis datanya tetap menyimpan catatan bahwa lampiran itu ada. Ini satu-satunya
+bagian sistem yang masih menyimpan berkas di dalam kontainer; perpindahan ke
+penyimpanan objek hanya mengubah tiga fungsi di `src/lib/berkas.js`.
+
 ## Catatan infrastruktur
 
 **Basis data tidak diletakkan di volume.** PostgreSQL terkelola memberi cadangan
