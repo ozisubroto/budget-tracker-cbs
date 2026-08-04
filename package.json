@@ -12,7 +12,8 @@
     "migrate": "node src/lib/migrate.js",
     "seed:pengguna": "node src/lib/seedPengguna.js",
     "sandi:reset": "node src/lib/resetSandi.js",
-    "cek": "node src/lib/cek.js"
+    "cek": "node src/lib/cek.js",
+    "uji:alur": "node uji/alur-approval.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
