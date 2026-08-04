@@ -17,6 +17,7 @@ const ikon = {
   pagu: ['M21 12a9 9 0 11-6.2-8.6', 'M21 4v6h-6'],
   laporan: ['M3 3v16a2 2 0 002 2h16', 'M7 14l4-4 3 3 5-6'],
   delegasi: ['M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2', 'M9 3a4 4 0 100 8 4 4 0 000-8M22 21v-2a4 4 0 00-3-3.9'],
+  penerima: ['M17 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2', 'M9.5 3a4 4 0 100 8 4 4 0 000-8M22 11h-6'],
   atur: ['M12 9a3 3 0 100 6 3 3 0 000-6', 'M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-2.9 1.2V21a2 2 0 11-4 0v-.1A1.7 1.7 0 007 19.4a1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1A1.7 1.7 0 003 15a2 2 0 010-4 1.7 1.7 0 001.6-1.1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1A1.7 1.7 0 019 4.6 2 2 0 0111 3a2 2 0 014 0 1.7 1.7 0 001.1 1.6 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V11a2 2 0 010 4z'],
 };
 
@@ -28,6 +29,7 @@ const MENU = [
   { ke: '/persetujuan', label: 'Persetujuan', ikon: 'setuju', peran: ['atasan_1', 'atasan_2', 'atasan_3', 'finance'] },
   { ke: '/realisasi', label: 'Realisasi', ikon: 'bayar', peran: ['finance'] },
   { ke: '/lpj', label: 'LPJ', ikon: 'lpj', peran: ['admin', 'finance', 'atasan_3'] },
+  { ke: '/penerima', label: 'Master Penerima', ikon: 'penerima', peran: ['finance', 'admin'] },
   { judul: 'Anggaran' },
   { ke: '/master-plan', label: 'Master Plan', ikon: 'plan', peran: ['super_admin', 'atasan_3'] },
   { ke: '/pagu', label: 'Serapan Pagu', ikon: 'pagu', peran: '*' },
