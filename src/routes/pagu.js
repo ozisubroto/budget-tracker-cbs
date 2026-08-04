@@ -34,7 +34,11 @@ rute.get('/area', async (req, res) => {
 
   const { rows } = await q(
     `SELECT r.nama AS region, a.id AS area_id, a.nama AS area, k.nama AS kategori,
-            v.bulan, v.alokasi, v.terkunci, v.terpakai, v.tersedia
+            v.bulan, v.alokasi, v.terkunci, v.terpakai, v.tersedia,
+            COALESCE((SELECT sum(h.nominal) FROM pagu_hold h
+                       WHERE h.tingkat = 'region' AND h.area_id = v.area_id
+                         AND h.kategori_id = v.kategori_id AND h.tahun = v.tahun
+                         AND h.bulan = v.bulan AND h.aktif), 0) AS pinjam_region
        FROM v_pagu_area v
        JOIN area a            ON a.id = v.area_id
        JOIN region r          ON r.id = v.region_id
