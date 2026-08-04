@@ -7,6 +7,9 @@ import { rute as auth } from './routes/auth.js';
 import { rute as master } from './routes/master.js';
 import { rute as plan } from './routes/plan.js';
 import { rute as pagu } from './routes/pagu.js';
+import { rute as sinkron } from './routes/sinkron.js';
+import { rute as pengajuan } from './routes/pengajuan.js';
+import { jadwalkanSinkron } from './lib/sinkronSales.js';
 
 const app = express();
 app.use(helmet());
@@ -36,6 +39,8 @@ app.use('/api/auth', auth);
 app.use('/api/master', master);
 app.use('/api/plan', plan);
 app.use('/api/pagu', pagu);
+app.use('/api/sinkron', sinkron);
+app.use('/api/pengajuan', pengajuan);
 
 app.use((_req, res) => res.status(404).json({ pesan: 'Alamat tidak ditemukan.' }));
 
@@ -46,4 +51,7 @@ app.use((err, _req, res, _next) => {
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Budget Tracker CBS berjalan di :${port}`));
+app.listen(port, () => {
+  console.log(`Budget Tracker CBS berjalan di :${port}`);
+  jadwalkanSinkron();
+});
