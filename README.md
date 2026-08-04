@@ -17,8 +17,30 @@ cp .env.example .env      # isi DATABASE_URL dan JWT_SECRET
 npm install
 npm run migrate           # membuat skema dan mengisi master data
 npm run seed:pengguna     # membuat enam akun, mencetak sandi awal sekali
-npm start
+npm run web:build         # membangun antarmuka React
+npm start                 # API dan antarmuka pada port yang sama
 ```
+
+Saat mengembangkan antarmuka, jalankan `npm run web:dev` di terminal terpisah —
+Vite akan meneruskan panggilan `/api` ke server pada port 3000.
+
+## Antarmuka
+
+React + Vite, disajikan dari proses yang sama dengan API. Satu service, satu
+domain: tidak ada CORS yang perlu diatur dan tidak ada tagihan kedua.
+
+Menu disaring per peran — orang hanya melihat yang memang bisa dia kerjakan,
+karena menu yang selalu menolak saat diklik lebih membingungkan daripada tidak
+ada. Pembatasan tetap ditegakkan di server; penyaringan menu hanya soal
+kenyamanan.
+
+| Peran | Layar utama |
+|---|---|
+| Admin | buat pengajuan, isi LPJ, pantau draft dan revisi |
+| Atasan 1, 2, 3 | antrean persetujuan dengan konteks pagu dan cost ratio |
+| Finance | antrean bayar, pembayaran bertahap, penutupan, verifikasi LPJ |
+| Atasan 3 | persetujuan master plan dan dua pengaturan kendali |
+| Super Admin | unggah master plan, pengaturan, pengguna, delegasi darurat |
 
 Periksa `GET /sehat` sebelum lanjut. Bila mengembalikan 503, `DATABASE_URL` salah
 atau basis data belum terjangkau.
@@ -182,19 +204,58 @@ master plan tertentu, bukan yang terkini. Ini pasangan dari penanda revisi
 retroaktif: penanda memberi tahu ada perubahan, `versi_id` memperlihatkan angka
 aslinya.
 
+## Notifikasi & delegasi
+
+```
+GET    /api/notifikasi[?belum=1]        notifikasi milik sendiri
+POST   /api/notifikasi/baca             tandai sudah dibaca
+GET    /api/notifikasi/antrean          Super Admin, status kirim WhatsApp
+POST   /api/notifikasi/antrean/proses   Super Admin, memproses antrean manual
+GET    /api/delegasi                    daftar delegasi
+POST   /api/delegasi                    approver menunjuk penggantinya sendiri
+POST   /api/delegasi/darurat            Super Admin, atas nama orang lain
+DELETE /api/delegasi/:id                pembatalan lebih awal
+```
+
+**Delegasi mengarah ke atas**: Atasan 1 ke Atasan 2, Atasan 2 ke Atasan 3. Arah
+ke bawah ditolak karena menghapus kontrol berlapis. Admin, Atasan 3, dan Finance
+tidak punya tujuan alami — penggantinya ditunjuk Super Admin lewat jalur darurat,
+untuk kasus berhalangan mendadak yang tidak sempat diatur sendiri.
+
+Super Admin tidak boleh menerima delegasi: ia mengubah aturan mainnya, jadi tidak
+boleh sekaligus ikut bermain.
+
+**Jejak menyebut dua nama** — "disetujui oleh Budi atas nama Atasan 1". Inilah
+yang membedakan delegasi dari berbagi akun, dan alasan berbagi akun harus
+dilarang.
+
+**WhatsApp hanya pengantar.** Notifikasi dalam aplikasi tetap sumber kebenaran;
+tidak ada informasi yang hanya tersedia di WhatsApp. Pesan berisi nomor
+pengajuan, judul, nominal, dan tautan — tanpa rekening, tanpa lampiran, dan
+tanpa tombol approve. Pengiriman lewat antrean latar belakang dengan lima kali
+percobaan; matinya gateway tidak menghentikan satu pun alur di aplikasi.
+
+Seluruh pengiriman dibungkus di `src/lib/wa.js`. Penggantian vendor atau
+perpindahan ke Cloud API resmi hanya mengubah satu fungsi di berkas itu.
+
 ## Menjalankan uji
 
 ```bash
 PORT=3000 npm run uji:alur        # 24 pemeriksaan, 8 skenario alur approval
 PORT=3000 npm run uji:realisasi   # 20 pemeriksaan, 5 skenario realisasi dan LPJ
 PORT=3000 npm run uji:laporan     # 20 pemeriksaan konsistensi laporan
+PORT=3000 npm run uji:delegasi    # 19 pemeriksaan delegasi dan notifikasi
 ```
 
 Keduanya membuat pengajuan sungguhan. **Jalankan hanya pada basis data
 pengembangan, tidak pernah pada produksi.**
 
-## Yang belum ada
+## Status
 
-Fase 5: notifikasi WhatsApp dan delegasi berjangka. Notifikasi dalam aplikasi
-sudah berfungsi sejak Fase 2. Urutannya ada di
+Rilis pertama lengkap: Fase 0 sampai 5 terbangun, dengan 83 pemeriksaan otomatis.
+
+Yang menunggu di luar aplikasi ini: endpoint ringkasan di Dashboard Sales
+(kontraknya di `docs/`), dan pemilihan vendor gateway WhatsApp. Keduanya diisi
+lewat variabel lingkungan tanpa perlu deploy ulang, dan aplikasi berjalan normal
+selama keduanya kosong. Urutannya ada di
 `docs/superpowers/plans/2026-08-04-budget-request-approval-plan.md`.

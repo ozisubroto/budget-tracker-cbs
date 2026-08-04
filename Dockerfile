@@ -1,20 +1,23 @@
-# Build eksplisit, tanpa bergantung pada deteksi otomatis builder Railway.
-FROM node:20-alpine
+# Tahap 1: membangun antarmuka React.
+FROM node:20-alpine AS web
+WORKDIR /web
+COPY web/package.json web/package-lock.json ./
+RUN npm ci
+COPY web/ ./
+RUN npm run build
 
+# Tahap 2: server. Hanya hasil build yang ikut, bukan seluruh toolchain frontend.
+FROM node:20-alpine
 WORKDIR /app
 
-# Dependensi disalin lebih dulu agar lapisan ini terpakai ulang selama
-# package.json tidak berubah - build berikutnya jauh lebih cepat.
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 COPY src ./src
 COPY db ./db
+COPY --from=web /web/dist ./web/dist
 
-# Tidak berjalan sebagai root.
 USER node
-
 ENV NODE_ENV=production
 EXPOSE 3000
-
 CMD ["npm", "start"]

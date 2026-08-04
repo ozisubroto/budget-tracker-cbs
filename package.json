@@ -15,7 +15,10 @@
     "cek": "node src/lib/cek.js",
     "uji:alur": "node uji/alur-approval.mjs",
     "uji:realisasi": "node uji/realisasi-lpj.mjs",
-    "uji:laporan": "node uji/laporan.mjs"
+    "uji:laporan": "node uji/laporan.mjs",
+    "uji:delegasi": "node uji/delegasi-notifikasi.mjs",
+    "web:dev": "npm --prefix web run dev",
+    "web:build": "npm --prefix web ci && npm --prefix web run build"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
