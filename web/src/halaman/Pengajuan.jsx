@@ -162,8 +162,13 @@ export function PengajuanBaru() {
                   <option key={x.id} value={x.id}>{x.nama} — {x.jenis.replace('_', ' ')}</option>
                 ))}
               </select></label>
-            <p className="sub">Rekening tidak diketik di sini. Daftar penerima dikelola Finance — kalau penerimanya belum ada,
-              mintakan penambahan lebih dulu.</p>
+            {!penerima.muat && !(penerima.data ?? []).length ? (
+              <div className="pesan galat">Daftar penerima masih kosong. Finance perlu menambahkannya lebih dulu di
+                menu <b>Master Penerima</b> — pengajuan tidak bisa dikirim tanpa penerima.</div>
+            ) : (
+              <p className="sub">Rekening tidak diketik di sini. Daftar penerima dikelola Finance — kalau penerimanya
+                belum ada, mintakan penambahan lebih dulu.</p>
+            )}
             <label className="f" style={{ marginTop: 12 }}><span>Tanggal dibutuhkan</span>
               <input type="date" value={f.tgl_dibutuhkan ?? ''} onChange={(e) => setF({ ...f, tgl_dibutuhkan: e.target.value })} /></label>
           </section>
