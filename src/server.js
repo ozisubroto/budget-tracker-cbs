@@ -11,6 +11,16 @@ app.use(helmet());
 app.use(cors({ origin: process.env.CORS_ORIGIN?.split(',') ?? true, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 
+// Akar domain menjawab dengan identitas layanan, bukan 404. Membuka domain dan
+// menemukan "tidak ditemukan" membuat deployment yang sehat terlihat gagal.
+app.get('/', (_req, res) =>
+  res.json({
+    layanan: 'Budget Tracker CBS',
+    versi: process.env.npm_package_version ?? '0.1.0',
+    keterangan: 'API pengajuan dan approval budget. Antarmuka pengguna belum tersedia pada fase ini.',
+    periksa: '/sehat',
+  }));
+
 app.get('/sehat', async (_req, res) => {
   try {
     await pool.query('SELECT 1');
