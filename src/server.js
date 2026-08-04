@@ -5,6 +5,8 @@ import 'dotenv/config';
 import { pool } from './lib/db.js';
 import { rute as auth } from './routes/auth.js';
 import { rute as master } from './routes/master.js';
+import { rute as plan } from './routes/plan.js';
+import { rute as pagu } from './routes/pagu.js';
 
 const app = express();
 app.use(helmet());
@@ -32,6 +34,8 @@ app.get('/sehat', async (_req, res) => {
 
 app.use('/api/auth', auth);
 app.use('/api/master', master);
+app.use('/api/plan', plan);
+app.use('/api/pagu', pagu);
 
 app.use((_req, res) => res.status(404).json({ pesan: 'Alamat tidak ditemukan.' }));
 
