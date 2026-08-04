@@ -11,12 +11,17 @@ import { q } from './db.js';
  * Region tidak dapat meminjam dari region lain. Itu batas akuntansi keras, agar
  * KPI antar region tidak saling mengganggu.
  */
-export async function periksaPagu({ area_id, region_id, kategori_id, tahun, bulan, nominal }) {
+export async function periksaPagu(klien, { area_id, region_id, kategori_id, tahun, bulan, nominal }) {
+  // Wajib memakai koneksi transaksi yang sama dengan pemanggilnya. Saat kirim
+  // ulang, kunci pagu lama dilepas di dalam transaksi - pelepasan itu tidak
+  // terlihat oleh koneksi lain sebelum commit, sehingga pemeriksaan lewat pool
+  // akan menghitung nominal dua kali dan menolak pengajuan yang sebenarnya sah.
+  const db = klien ?? { query: q };
   const [{ rows: ar }, { rows: rg }] = await Promise.all([
-    q(`SELECT alokasi, terkunci, terpakai, tersedia FROM v_pagu_area
+    db.query(`SELECT alokasi, terkunci, terpakai, tersedia FROM v_pagu_area
         WHERE area_id = $1 AND kategori_id = $2 AND tahun = $3 AND bulan = $4`,
       [area_id, kategori_id, tahun, bulan]),
-    q(`SELECT plafon, terkunci, terpakai, tersedia FROM v_pagu_region
+    db.query(`SELECT plafon, terkunci, terpakai, tersedia FROM v_pagu_region
         WHERE region_id = $1 AND kategori_id = $2 AND tahun = $3 AND bulan = $4`,
       [region_id, kategori_id, tahun, bulan]),
   ]);
@@ -43,7 +48,12 @@ export async function periksaPagu({ area_id, region_id, kategori_id, tahun, bula
     kelebihan: melebihiPagu ? n - Math.max(0, sisaRegion) : 0,
     hold: [
       ...(dariArea > 0 ? [{ tingkat: 'area', area_id, region_id, nominal: dariArea }] : []),
-      ...(dariRegion > 0 ? [{ tingkat: 'region', area_id: null, region_id, nominal: dariRegion }] : []),
+      // area_id tetap dicatat pada kunci tingkat region, meski tidak ikut
+      // perhitungan sisa area. Tanpa ini, laporan tidak bisa menunjukkan area
+      // mana yang menyerap melebihi jatahnya - padahal itu justru ukuran
+      // disiplin yang kita inginkan. Pinjamannya tetap kolektif terhadap sisa
+      // region; tidak ada area sumber yang ditunjuk.
+      ...(dariRegion > 0 ? [{ tingkat: 'region', area_id, region_id, nominal: dariRegion }] : []),
     ],
     snapshot: {
       alokasi_area: ar[0]?.alokasi ?? null,

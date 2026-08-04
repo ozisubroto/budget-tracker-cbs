@@ -51,6 +51,25 @@ export function wajibPeran(...peran) {
 }
 
 /**
+ * Peran efektif seseorang: peran akunnya sendiri, ditambah peran siapa pun yang
+ * sedang mendelegasikan kepadanya. Dipakai saat peran yang dibutuhkan bergantung
+ * pada status pengajuan, bukan pada jalur rute.
+ */
+export async function peranEfektif(pengguna_id, peranAkun) {
+  const { rows } = await q(
+    `SELECT p.peran, p.id
+       FROM delegasi d JOIN pengguna p ON p.id = d.dari_pengguna_id
+      WHERE d.ke_pengguna_id = $1 AND d.dibatalkan_pada IS NULL
+        AND CURRENT_DATE BETWEEN d.mulai AND d.selesai`,
+    [pengguna_id],
+  );
+  return [
+    { peran: peranAkun, atasNama: null },
+    ...rows.map((r) => ({ peran: r.peran, atasNama: r.id })),
+  ];
+}
+
+/**
  * Super Admin mengubah aturan mainnya, jadi tidak boleh sekaligus ikut bermain.
  * Dipasang pada seluruh rute pengajuan, persetujuan, pembayaran, dan LPJ.
  */
