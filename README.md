@@ -318,6 +318,8 @@ PORT=3000 npm run uji:alur        # 24 pemeriksaan, 8 skenario alur approval
 PORT=3000 npm run uji:realisasi   # 20 pemeriksaan, 5 skenario realisasi dan LPJ
 PORT=3000 npm run uji:laporan     # 20 pemeriksaan konsistensi laporan
 PORT=3000 npm run uji:delegasi    # 19 pemeriksaan delegasi dan notifikasi
+PORT=3000 npm run uji:notifikasi  # 10 pemeriksaan celah notifikasi Fase 5
+PORT=3000 npm run uji:pengingat   # 9 pemeriksaan pengingat pengajuan menggantung
 ```
 
 Keduanya membuat pengajuan sungguhan. **Jalankan hanya pada basis data

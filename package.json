@@ -18,7 +18,9 @@
     "uji:laporan": "node uji/laporan.mjs",
     "uji:delegasi": "node uji/delegasi-notifikasi.mjs",
     "web:dev": "npm --prefix web run dev",
-    "web:build": "npm --prefix web ci && npm --prefix web run build"
+    "web:build": "npm --prefix web ci && npm --prefix web run build",
+    "uji:notifikasi": "node uji/notifikasi-lengkap.mjs",
+    "uji:pengingat": "node uji/pengingat-menggantung.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
