@@ -308,6 +308,13 @@ pengajuan, judul, nominal, dan tautan — tanpa rekening, tanpa lampiran, dan
 tanpa tombol approve. Pengiriman lewat antrean latar belakang dengan lima kali
 percobaan; matinya gateway tidak menghentikan satu pun alur di aplikasi.
 
+**Tautan dalam pesan tetap mengarah ke pengajuan yang dituju meski peramban
+penerima belum menyimpan sesi login.** Membuka tautan tanpa login akan
+diarahkan ke halaman masuk, tapi setelah berhasil masuk, halaman mendarat
+kembali di pengajuan aslinya — bukan ke Dashboard. Tujuan disimpan sesaat di
+`sessionStorage`, bukan lewat parameter URL, supaya tidak tercatat di riwayat
+peramban atau ikut ter-share saat tautan disalin ulang.
+
 Seluruh pengiriman dibungkus di `src/lib/wa.js`, fungsi `kirimKeGateway`.
 Penggantian vendor hanya mengubah fungsi itu; seluruh kode lain memanggil
 `kirimKeGateway(nomor, teks)` tanpa tahu detail vendornya.
