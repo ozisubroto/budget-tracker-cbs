@@ -69,6 +69,20 @@ export async function unduhBerkas(jalur, nama) {
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
 
+/** Membuka surat cetak di tab baru. */
+export async function bukaSurat(jalur) {
+  const { url } = await ambilBerkas(jalur);
+  const jendela = window.open(url, '_blank');
+  if (!jendela) {
+    // Peramban memblokir pop-up. Unduh sebagai berkas supaya penggunanya
+    // tetap dapat suratnya, bukan sekadar galat tanpa jalan keluar.
+    const a = document.createElement('a');
+    a.href = url; a.download = 'surat-pengajuan.html';
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
 export const bisaPratinjau = (nama = '') => /\.(pdf|jpe?g|png|webp)$/i.test(nama);
 
 export const rp = (n) => (n === null || n === undefined ? '—' : 'Rp ' + Math.round(Number(n)).toLocaleString('id-ID'));
