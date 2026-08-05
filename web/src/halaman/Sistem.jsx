@@ -9,6 +9,7 @@ const LABEL = {
   batas_waktu_lpj_hari: ['Batas waktu LPJ', 'Dihitung dari tanggal selesai program.', 'hari'],
   ambang_penutupan_persen: ['Ambang alasan penutupan', 'Selisih pembayaran di atas ini wajib beralasan.', 'persen'],
   ambang_penutupan_rupiah: ['Ambang alasan penutupan (rupiah)', 'Dipakai bila lebih kecil dari ambang persen.', 'rp'],
+  batas_menggantung_hari: ['Batas pengingat menggantung', 'Setelah ini, pengingat dikirim ke pemegang tahap - lalu ke atasannya bila masih menggantung lagi.', 'hari'],
 };
 const WAJIB_ATASAN_3 = ['batas_pagu_atasan_2', 'ambang_cost_ratio'];
 const tampil = (kode, n) => LABEL[kode]?.[2] === 'persen' ? `${(Number(n) * 100).toFixed(1)}%`
