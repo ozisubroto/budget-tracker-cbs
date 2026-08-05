@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './gaya.css';
 import { sesi } from './api.js';
 import Masuk from './halaman/Masuk.jsx';
@@ -13,7 +13,14 @@ import Laporan from './halaman/Laporan.jsx';
 import { Pengaturan, Delegasi, Notifikasi } from './halaman/Sistem.jsx';
 import Penerima from './halaman/Penerima.jsx';
 
-const Terkunci = ({ anak }) => (sesi.token ? anak : <Navigate to="/masuk" replace />);
+function Terkunci({ anak }) {
+  const lok = useLocation();
+  if (sesi.token) return anak;
+  // Disimpan di sessionStorage, bukan dilewatkan lewat query string - supaya
+  // tidak muncul di riwayat peramban atau ikut ter-share saat tautan disalin.
+  sessionStorage.setItem('bt_tujuan', lok.pathname + lok.search);
+  return <Navigate to="/masuk" replace />;
+}
 // Peran yang tidak berhak diarahkan pulang, bukan diberi layar galat - menu sudah
 // disaring per peran, jadi ini hanya pengaman kalau alamatnya diketik langsung.
 const Batasi = ({ peran, anak }) => (peran.includes(sesi.pengguna?.peran) ? anak : <Navigate to="/" replace />);
