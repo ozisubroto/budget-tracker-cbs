@@ -5,7 +5,7 @@ const RAHASIA = process.env.JWT_SECRET;
 if (!RAHASIA) throw new Error('JWT_SECRET belum diisi');
 
 export const buatToken = (p) =>
-  jwt.sign({ id: p.id, peran: p.peran, nama: p.nama }, RAHASIA, { expiresIn: process.env.JWT_TTL || '12h' });
+  jwt.sign({ id: p.id, peran: p.peran, nama: p.nama, jabatan: p.jabatan }, RAHASIA, { expiresIn: process.env.JWT_TTL || '12h' });
 
 /** Menolak permintaan tanpa token yang sah. */
 export function wajibLogin(req, res, next) {
