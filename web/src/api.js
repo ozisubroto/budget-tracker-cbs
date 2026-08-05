@@ -46,6 +46,31 @@ export const api = {
   hapus: (j) => panggil('DELETE', j),
 };
 
+/**
+ * Mengambil berkas dari API.
+ *
+ * Tautan <a href> biasa tidak membawa header autentikasi, sehingga server
+ * menolaknya. Berkas harus diambil lewat fetch yang membawa token, lalu
+ * ditampilkan atau diunduh dari memori.
+ */
+export async function ambilBerkas(jalur) {
+  const blob = await api.get(jalur, { berkas: true });
+  return { blob, url: URL.createObjectURL(blob) };
+}
+
+/** Mengunduh berkas dengan nama yang benar. */
+export async function unduhBerkas(jalur, nama) {
+  const { url } = await ambilBerkas(jalur);
+  const a = document.createElement('a');
+  a.href = url; a.download = nama;
+  document.body.appendChild(a); a.click(); a.remove();
+  // Ditunda sedikit: sebagian peramban membatalkan unduhan bila URL dicabut
+  // terlalu cepat.
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
+
+export const bisaPratinjau = (nama = '') => /\.(pdf|jpe?g|png|webp)$/i.test(nama);
+
 export const rp = (n) => (n === null || n === undefined ? '—' : 'Rp ' + Math.round(Number(n)).toLocaleString('id-ID'));
 export const rpSingkat = (n) => {
   const v = Number(n || 0);
