@@ -360,7 +360,13 @@ rute.post('/:id/aksi', async (req, res) => {
         );
     }
 
-    await c.query('UPDATE pengajuan SET status = $1, jalur_cepat = $2 WHERE id = $3', [statusBaru, jalurCepat, p.id]);
+    // pengingat_jumlah direset ke nol setiap kali status berpindah - approver
+    // di tahap baru belum pernah diingatkan sama sekali, jadi pengingat
+    // pertamanya nanti wajib ke dia sendiri, bukan langsung ke atasannya.
+    await c.query(
+      'UPDATE pengajuan SET status = $1, jalur_cepat = $2, pengingat_terakhir = NULL, pengingat_jumlah = 0 WHERE id = $3',
+      [statusBaru, jalurCepat, p.id],
+    );
     await c.query(
       `INSERT INTO pengajuan_log (pengajuan_id, versi_no, status_dari, status_ke, aksi, oleh, atas_nama, alasan)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
@@ -391,12 +397,42 @@ rute.post('/:id/aksi', async (req, res) => {
         isi: `${p.judul} — Rp ${uang(p.total_nominal).toLocaleString('id-ID')}`,
       });
 
-    if (['perlu_revisi', 'ditolak', 'menunggu_realisasi'].includes(statusBaru))
+    if (['perlu_revisi', 'ditolak', 'menunggu_realisasi'].includes(statusBaru)) {
       await beriTahu(c, {
         pengguna_id: p.dibuat_oleh, pengajuan_id: p.id, jenis: statusBaru,
         judul: `${p.nomor} ${statusBaru === 'perlu_revisi' ? 'perlu revisi' : statusBaru === 'ditolak' ? 'ditolak' : 'disetujui penuh'}`,
         isi: req.body?.alasan ?? null,
       });
+      // Disetujui final diberi tahu ke Admin dan Finance sekaligus - Finance
+      // memang melihatnya di antrean, tapi antrean bukan pengganti notifikasi
+      // saat pertama kali muncul di sana.
+      if (statusBaru === 'menunggu_realisasi')
+        await beriTahu(c, {
+          peran: 'finance', pengajuan_id: p.id, jenis: 'siap_dibayar',
+          judul: `${p.nomor} disetujui penuh, siap direalisasi`,
+          isi: `${p.judul} — Rp ${uang(p.total_nominal).toLocaleString('id-ID')}`,
+        });
+    }
+
+    // Reject bersifat final dan mahal - pengajuan sudah lewat beberapa tahap.
+    // Seluruh orang yang pernah menyetujui versi ini diberi tahu, bukan cuma
+    // Admin, karena artinya ada yang perlu ditinjau ulang di rantai
+    // persetujuan yang sudah mereka lewati.
+    if (aksi === 'reject') {
+      const { rows: penyetuju } = await c.query(
+        `SELECT DISTINCT oleh FROM pengajuan_log
+          WHERE pengajuan_id = $1 AND versi_no = $2 AND aksi = 'approve' AND oleh IS NOT NULL`,
+        [p.id, p.versi_no],
+      );
+      for (const { oleh } of penyetuju) {
+        if (Number(oleh) === Number(p.dibuat_oleh)) continue; // sudah kebagian di atas
+        await beriTahu(c, {
+          pengguna_id: oleh, pengajuan_id: p.id, jenis: 'ditolak_setelah_disetujui',
+          judul: `${p.nomor} ditolak setelah sempat Anda setujui`,
+          isi: req.body?.alasan ?? null,
+        });
+      }
+    }
 
     return { ok: true, status: statusBaru, jalurCepat, sebab };
   });

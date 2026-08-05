@@ -2,6 +2,7 @@ import { ruteAman } from '../lib/rute.js';
 import { q } from '../lib/db.js';
 import { wajibLogin, wajibPeran } from '../lib/auth.js';
 import { prosesAntrean, waAktif } from '../lib/wa.js';
+import { prosesPengingatMenggantung } from '../lib/pengingat.js';
 
 export const rute = ruteAman();
 rute.use(wajibLogin);
@@ -49,4 +50,11 @@ rute.get('/antrean', wajibPeran('super_admin'), async (_req, res) => {
 
 rute.post('/antrean/proses', wajibPeran('super_admin'), async (_req, res) => {
   res.json(await prosesAntrean(50));
+});
+
+// Pemicu manual, tidak menunggu jadwal per jam. Berguna untuk Super Admin
+// yang baru saja mengubah batas_menggantung_hari dan ingin melihat efeknya
+// segera, dan untuk pengujian otomatis.
+rute.post('/pengingat/proses', wajibPeran('super_admin'), async (_req, res) => {
+  res.json(await prosesPengingatMenggantung());
 });

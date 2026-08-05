@@ -1,6 +1,7 @@
 import { ruteAman } from '../lib/rute.js';
 import { q } from '../lib/db.js';
 import { wajibLogin, wajibPeran } from '../lib/auth.js';
+import { normalisasiNoWa } from '../lib/wa.js';
 
 export const rute = ruteAman();
 rute.use(wajibLogin);
@@ -151,11 +152,21 @@ rute.get('/pengguna', wajibPeran('super_admin', 'atasan_1', 'atasan_2', 'atasan_
 });
 
 rute.patch('/pengguna/:id', wajibPeran('super_admin'), async (req, res) => {
+  let noWa;
+  try {
+    // undefined berarti field tidak dikirim - dibiarkan seperti semula.
+    // null berarti dikosongkan sengaja (orang itu hanya menerima notifikasi
+    // di dalam aplikasi). Keduanya harus dibedakan dari COALESCE biasa.
+    noWa = req.body?.no_wa === undefined ? undefined : normalisasiNoWa(req.body.no_wa);
+  } catch (e) {
+    return res.status(422).json({ pesan: e.message });
+  }
+
   const { rows } = await q(
     `UPDATE pengguna SET nama = COALESCE($1, nama), jabatan = COALESCE($2, jabatan),
-            no_wa = COALESCE($3, no_wa), aktif = COALESCE($4, aktif)
-      WHERE id = $5 RETURNING id, nama, email, peran, jabatan, no_wa, aktif`,
-    [req.body?.nama ?? null, req.body?.jabatan ?? null, req.body?.no_wa ?? null, req.body?.aktif ?? null, req.params.id],
+            no_wa = CASE WHEN $3 THEN $4 ELSE no_wa END, aktif = COALESCE($5, aktif)
+      WHERE id = $6 RETURNING id, nama, email, peran, jabatan, no_wa, aktif`,
+    [req.body?.nama ?? null, req.body?.jabatan ?? null, noWa !== undefined, noWa ?? null, req.body?.aktif ?? null, req.params.id],
   );
   if (!rows.length) return res.status(404).json({ pesan: 'Pengguna tidak ditemukan.' });
   res.json(rows[0]);
