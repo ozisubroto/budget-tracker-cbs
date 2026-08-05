@@ -16,7 +16,9 @@ export default function Masuk() {
     try {
       const d = await api.post('/auth/masuk', { email, sandi });
       sesi.simpan(d.token, d.pengguna);
-      nav('/');
+      const tujuan = sessionStorage.getItem('bt_tujuan');
+      sessionStorage.removeItem('bt_tujuan');
+      nav(tujuan || '/');
     } catch (x) { setGalat(x.message); } finally { setSibuk(false); }
   };
 
