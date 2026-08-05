@@ -22,6 +22,24 @@ export function Pengaturan() {
   const [ubah, setUbah] = useState(null);
   const [nilai, setNilai] = useState('');
   const [galat, setGalat] = useState(null);
+  const [editPengguna, setEditPengguna] = useState(null);
+  const [fPengguna, setFPengguna] = useState({ nama: '', jabatan: '', no_wa: '' });
+  const [galatPengguna, setGalatPengguna] = useState(null);
+  const [sibukPengguna, setSibukPengguna] = useState(false);
+
+  const bukaEditPengguna = (u) => {
+    setGalatPengguna(null);
+    setFPengguna({ nama: u.nama, jabatan: u.jabatan ?? '', no_wa: u.no_wa ?? '' });
+    setEditPengguna(u);
+  };
+
+  const simpanPengguna = async () => {
+    setSibukPengguna(true); setGalatPengguna(null);
+    try {
+      await api.patch(`/master/pengguna/${editPengguna.id}`, fPengguna);
+      setEditPengguna(null); pengguna.muatUlang();
+    } catch (e) { setGalatPengguna(e.message); } finally { setSibukPengguna(false); }
+  };
 
   const menunggu = (riwayat.data ?? []).filter((x) => x.status === 'menunggu_persetujuan');
 
@@ -77,17 +95,45 @@ export function Pengaturan() {
         <section className="card">
           <div className="chead"><h3>Pengguna</h3></div>
           {pengguna.muat ? <Memuat /> : (
-            <table><thead><tr><th>Nama</th><th>Peran</th><th>Email</th><th>WhatsApp</th><th className="ka">Status</th></tr></thead>
+            <table><thead><tr><th>Nama &amp; jabatan</th><th>Peran</th><th>Email</th><th>WhatsApp</th>
+              <th className="ka">Status</th><th /></tr></thead>
               <tbody>{(pengguna.data ?? []).map((u) => (
-                <tr key={u.id}><td style={{ fontWeight: 600 }}>{u.nama}</td><td>{PERAN[u.peran]}</td>
+                <tr key={u.id}>
+                  <td style={{ fontWeight: 600 }}>{u.nama}<div className="sub" style={{ fontWeight: 500 }}>{u.jabatan || '—'}</div></td>
+                  <td>{PERAN[u.peran]}</td>
                   <td className="sub">{u.email}</td>
                   <td>{u.no_wa ?? <span className="sub">belum diisi</span>}</td>
-                  <td className="ka"><span className={`chip ${u.aktif ? 'ok' : 'abu'}`}>{u.aktif ? 'aktif' : 'nonaktif'}</span></td></tr>
+                  <td className="ka"><span className={`chip ${u.aktif ? 'ok' : 'abu'}`}>{u.aktif ? 'aktif' : 'nonaktif'}</span></td>
+                  <td className="ka"><button className="btn ghost kecil" onClick={() => bukaEditPengguna(u)}>Ubah</button></td>
+                </tr>
               ))}</tbody></table>
           )}
           <p className="sub" style={{ marginTop: 12 }}>Nomor WhatsApp yang kosong berarti orang itu hanya menerima notifikasi
             di dalam aplikasi.</p>
         </section>
+
+        {editPengguna && (
+          <Modal tutup={() => setEditPengguna(null)} judul={`Ubah ${editPengguna.nama}`}
+            catatan="Email dan peran tidak dapat diubah dari sini — keduanya menentukan hak akses dan riwayat audit."
+            anak={<>
+              <Pesan anak={galatPengguna} />
+              <label className="f"><span>Nama</span>
+                <input value={fPengguna.nama} onChange={(e) => setFPengguna({ ...fPengguna, nama: e.target.value })} autoFocus /></label>
+              <label className="f"><span>Jabatan</span>
+                <input value={fPengguna.jabatan} onChange={(e) => setFPengguna({ ...fPengguna, jabatan: e.target.value })}
+                  placeholder="mis. GM Sales Offline" /></label>
+              <label className="f"><span>Nomor WhatsApp</span>
+                <input value={fPengguna.no_wa} onChange={(e) => setFPengguna({ ...fPengguna, no_wa: e.target.value })}
+                  placeholder="6281234567890" /></label>
+              <p className="sub">Nomor tanpa tanda plus atau spasi, diawali kode negara. Kosongkan bila orang ini hanya
+                menerima notifikasi di dalam aplikasi.</p>
+            </>}
+            aksi={<>
+              <button className="btn ghost" onClick={() => setEditPengguna(null)}>Batal</button>
+              <button className="btn primary" disabled={sibukPengguna || !fPengguna.nama} onClick={simpanPengguna}>
+                {sibukPengguna ? 'Menyimpan…' : 'Simpan'}</button>
+            </>} />
+        )}
 
         {ubah && (
           <Modal tutup={() => setUbah(null)} judul={`Ubah ${LABEL[ubah][0]}`}
