@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Shell from '../komponen/Shell.jsx';
-import { api, sesi, rp, rpSingkat, persen, tgl, NAMA_BULAN } from '../api.js';
+import { api, sesi, rp, rpSingkat, persen, tgl, NAMA_BULAN, unduhBerkas } from '../api.js';
 import { usePanggil, Memuat, Kosong, Modal, Pesan, Pil } from '../komponen/dasar.jsx';
 
 const TAHUN = new Date().getFullYear();
@@ -35,7 +35,9 @@ export function Pagu() {
               <option value="">Semua bulan</option>
               {NAMA_BULAN.slice(1).map((b, i) => <option key={b} value={i + 1}>{b}</option>)}
             </select>
-            <a className="btn ghost kecil" href={`/api/laporan/serapan/excel?tahun=${TAHUN}`}>Ekspor Excel</a>
+            <button className="btn ghost kecil"
+              onClick={() => unduhBerkas(`/laporan/serapan/excel?tahun=${TAHUN}`, `serapan-${TAHUN}.xlsx`)}>
+              Ekspor Excel</button>
           </div>
         </div>
         {muat ? <Memuat /> : !data?.length ? <Kosong teks="Belum ada data." /> : (

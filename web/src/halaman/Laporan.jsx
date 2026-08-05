@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Shell from '../komponen/Shell.jsx';
-import { api, rp, rpSingkat, persen, tgl, NAMA_BULAN } from '../api.js';
+import { api, rp, rpSingkat, persen, tgl, NAMA_BULAN, unduhBerkas } from '../api.js';
 import { usePanggil, Memuat, Kosong } from '../komponen/dasar.jsx';
 
 const TAHUN = new Date().getFullYear();
@@ -35,7 +35,9 @@ export default function Laporan() {
             </div>
             <section className="card">
               <div className="chead"><h3>Kombinasi melebihi plafon region</h3>
-                <div className="kanan"><a className="btn ghost kecil" href={`/api/laporan/pengecualian/excel?tahun=${TAHUN}`}>Ekspor Excel</a></div></div>
+                <div className="kanan"><button className="btn ghost kecil"
+                  onClick={() => unduhBerkas(`/laporan/pengecualian/excel?tahun=${TAHUN}`, `pengecualian-${TAHUN}.xlsx`)}>
+                  Ekspor Excel</button></div></div>
               {!d.data?.kombinasi_melebihi_plafon.length ? <Kosong teks="Tidak ada region yang menembus plafonnya." /> : (
                 <table><thead><tr><th>Region</th><th>Kategori</th><th>Bulan</th>
                   <th className="ka">Plafon</th><th className="ka">Kelebihan</th></tr></thead>
