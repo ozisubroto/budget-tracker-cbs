@@ -135,6 +135,36 @@ Rekening tidak pernah diketik di form pengajuan. Admin hanya memilih dari daftar
 ini — itu menutup titik rawan yang paling umum, karena satu digit rekening yang
 diubah tetap lolos di mata orang yang memeriksa nominal.
 
+## Surat pengajuan
+
+```
+GET /api/pengajuan/:id/surat
+```
+
+Mengembalikan HTML berukuran A4 siap cetak — kop CBS, alamat kantor, rincian
+item, konteks keputusan yang dibekukan, dan lima kotak persetujuan berjenjang.
+Di antarmuka tersedia lewat tombol **Cetak surat** pada halaman detail.
+
+**Draft tidak dapat dicetak.** Angkanya belum dibekukan dan nomornya belum
+terbit; mencetaknya menghasilkan dokumen berkop resmi yang isinya masih bisa
+berubah.
+
+**Tahap yang belum ditindak dibiarkan kosong**, bukan diberi tanda apa pun.
+Lembar yang dicetak di tengah alur harus jujur menunjukkan mana yang benar-benar
+sudah diputuskan — kotak kosong yang menyerupai kotak terisi mengundang orang
+menandatanganinya manual, dan sejak saat itu catatan sistem dan lembar fisik
+bisa bercerita berbeda.
+
+**Pengajuan jalur cepat** menandai kotak Atasan 3 sebagai *dilewati*, bukan
+*menunggu*, supaya surat yang sudah tuntas tidak terlihat menggantung.
+
+**Persetujuan lewat delegasi** mencetak dua nama: pelaksana dan atas nama siapa.
+
+Logo disematkan sebagai base64 di `src/lib/logo.js`. Surat tidak pernah
+bergantung pada berkas eksternal — berkas logo yang hilang saat deploy akan
+menghasilkan surat resmi tanpa kop, dan itu baru ketahuan setelah dokumennya
+terlanjur dibagikan.
+
 ## Lampiran
 
 ```
