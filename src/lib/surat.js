@@ -81,16 +81,13 @@ export function suratHtml({ p, item, ttd, dicetakOleh }) {
 <style>
 :root{--biru:#1E3A8A;--ink:#111827;--abu:#6B7280;--garis:#D9DCE3;--hijau:#15803D}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#E9EAEE;
+body{font-family:'Inter','Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,'Helvetica Neue',Arial,sans-serif;background:#E9EAEE;
   color:var(--ink);padding:26px;font-size:11px;line-height:1.5;-webkit-font-smoothing:antialiased}
 .kertas{width:210mm;min-height:297mm;margin:0 auto;background:#fff;padding:16mm 15mm 14mm;
   box-shadow:0 6px 28px rgba(17,24,39,.14);display:flex;flex-direction:column}
-.kepala{display:flex;align-items:flex-start;gap:18px;margin-bottom:22px}
-.logo{width:112px;height:68px;flex:none;background:var(--biru);
-  -webkit-mask-image:url(data:image/png;base64,${LOGO_CBS});mask-image:url(data:image/png;base64,${LOGO_CBS});
-  -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
-  -webkit-mask-position:left center;mask-position:left center}
-.nama-pt{font-size:13px;font-weight:700;letter-spacing:-.01em;margin-top:6px}
+.kepala{display:flex;align-items:flex-end;gap:18px;margin-bottom:22px}
+.logo{width:112px;height:auto;display:block}
+.nama-pt{font-size:14px;font-weight:800;letter-spacing:-.015em;margin-top:8px;color:var(--ink)}
 .nama-pt span{display:block;font-size:9px;font-weight:500;color:var(--abu);line-height:1.5;margin-top:2px}
 .judul{margin-left:auto;text-align:right}
 .judul h1{font-size:25px;font-weight:700;color:var(--biru);letter-spacing:-.02em;line-height:1.1;text-transform:uppercase}
@@ -161,6 +158,10 @@ tbody .nama{font-weight:600;font-size:10.5px}
   font:inherit;font-size:11px;font-weight:600;cursor:pointer}
 .cetak span{font-size:10.5px;color:#5B6272}
 @media print{
+  /* Peramban membuang warna latar saat mencetak demi menghemat tinta. Untuk
+     dokumen resmi berkop, itu justru menghilangkan identitasnya - jadi diminta
+     eksplisit agar dipertahankan. */
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
   body{background:#fff;padding:0}
   .kertas{box-shadow:none;margin:0;width:auto;min-height:auto;padding:14mm}
   .cetak{display:none}
@@ -180,7 +181,7 @@ tbody .nama{font-weight:600;font-size:10.5px}
 
   <div class="kepala">
     <div>
-      <div class="logo"></div>
+      <img class="logo" src="data:image/png;base64,${LOGO_CBS}" alt="Logo PT. Cahaya Bintang Sempurna">
       <div class="nama-pt">PT. Cahaya Bintang Sempurna<span>${ALAMAT}</span></div>
     </div>
     <div class="judul">
