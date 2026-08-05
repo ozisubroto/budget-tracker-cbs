@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Shell from '../komponen/Shell.jsx';
-import { api, sesi, rp, persen, tgl, NAMA_BULAN } from '../api.js';
+import { api, sesi, rp, persen, tgl, NAMA_BULAN, bukaSurat } from '../api.js';
 import { usePanggil, Pil, Memuat, Modal, Pesan } from '../komponen/dasar.jsx';
 import Lampiran from '../komponen/Lampiran.jsx';
 
@@ -41,6 +41,14 @@ export default function DetailPengajuan() {
     <Shell judul={d.nomor.startsWith('DRAFT') ? 'Draft pengajuan' : d.nomor}
       aksi={
         <>
+          {d.status !== 'draft' && (
+            <button className="btn ghost" onClick={() => bukaSurat(`/pengajuan/${id}/surat`).catch((e) => setGalat(e.message))}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" />
+              </svg>
+              Cetak surat
+            </button>
+          )}
           {bisaEdit && <button className="btn primary" onClick={() => setDialog('kirim')}>Kirim pengajuan</button>}
           {bisaTindak && <>
             <button className="btn setuju" onClick={() => setDialog('approve')}>Setujui</button>
