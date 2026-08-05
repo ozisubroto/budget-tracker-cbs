@@ -308,8 +308,43 @@ pengajuan, judul, nominal, dan tautan — tanpa rekening, tanpa lampiran, dan
 tanpa tombol approve. Pengiriman lewat antrean latar belakang dengan lima kali
 percobaan; matinya gateway tidak menghentikan satu pun alur di aplikasi.
 
-Seluruh pengiriman dibungkus di `src/lib/wa.js`. Penggantian vendor atau
-perpindahan ke Cloud API resmi hanya mengubah satu fungsi di berkas itu.
+Seluruh pengiriman dibungkus di `src/lib/wa.js`, fungsi `kirimKeGateway`.
+Penggantian vendor hanya mengubah fungsi itu; seluruh kode lain memanggil
+`kirimKeGateway(nomor, teks)` tanpa tahu detail vendornya.
+
+**Vendor yang dipakai: Fonnte.** Dua hal khas Fonnte yang berbeda dari asumsi
+generik kebanyakan gateway:
+
+- Header `Authorization` diisi token **apa adanya**, bukan `Bearer <token>`
+- Fonnte bisa membalas **HTTP 200 tapi tetap gagal** — field `status` di dalam
+  body bernilai `false`, misalnya nomor tidak terdaftar di WhatsApp atau device
+  terputus. Kegagalan seperti ini ditangkap dan dicatat sebagai `gagal` di
+  `notifikasi_kirim`, bukan salah dianggap terkirim hanya karena kode HTTP-nya
+  200
+
+### Menguji notifikasi WhatsApp setelah deploy
+
+1. **Isi variabel di Railway**, service Budget Tracker:
+   ```
+   WA_GATEWAY_URL   = https://api.fonnte.com/send
+   WA_GATEWAY_TOKEN = <token device dari dashboard Fonnte>
+   APP_URL          = https://<domain-budget-tracker-anda>
+   ```
+2. **Isi nomor WhatsApp Anda sendiri** ke salah satu akun uji lewat menu
+   Pengaturan → Pengguna → Ubah, supaya pesan uji masuk ke ponsel Anda.
+3. **Picu kejadian yang menghasilkan notifikasi** — cara termudah: sebagai
+   Admin, buat dan kirim satu pengajuan. Approver di tahap pertama akan
+   mendapat notifikasi.
+4. **Masuk sebagai Super Admin**, buka `GET /api/notifikasi/antrean` untuk
+   melihat ringkasan status kirim, lalu `POST /api/notifikasi/antrean/proses`
+   untuk memprosesnya segera tanpa menunggu jadwal per menit.
+5. **Periksa Deploy Logs Railway** — baris `Antrean WhatsApp: {...}` muncul
+   setiap kali pekerja latar belakang memproses antrean, dengan jumlah
+   terkirim dan gagal.
+
+Kalau `gagal` bertambah, buka `GET /api/notifikasi/antrean` — field
+`gagal_terakhir[].respons` berisi pesan asli dari Fonnte, biasanya cukup untuk
+langsung tahu sebabnya (token salah, device terputus, nomor tidak valid).
 
 ## Menjalankan uji
 

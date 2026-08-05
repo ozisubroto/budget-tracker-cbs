@@ -14,15 +14,56 @@ import { q } from './db.js';
 
 export const waAktif = () => Boolean(process.env.WA_GATEWAY_URL && process.env.WA_GATEWAY_TOKEN);
 
+/**
+ * Menormalkan nomor WhatsApp ke bentuk yang diterima gateway: angka polos
+ * diawali kode negara, tanpa "+", "0" di depan, spasi, atau tanda pisah.
+ *
+ * Dipanggil sekali saat nomor disimpan (PATCH /master/pengguna), bukan setiap
+ * kali dikirim - supaya seluruh kode di hilir cukup mengasumsikan satu bentuk.
+ * Mengembalikan null untuk input kosong, dan melempar pesan yang jelas kalau
+ * polanya tidak masuk akal - lebih baik ditolak saat disimpan daripada gagal
+ * kirim diam-diam berbulan-bulan kemudian.
+ */
+export function normalisasiNoWa(nomor) {
+  if (nomor === null || nomor === undefined || String(nomor).trim() === '') return null;
+  let bersih = String(nomor).replace(/[\s\-().]/g, '');
+  if (bersih.startsWith('+')) bersih = bersih.slice(1);
+  if (bersih.startsWith('0')) bersih = '62' + bersih.slice(1);
+  if (!bersih.startsWith('62')) bersih = '62' + bersih;
+  if (!/^62\d{8,14}$/.test(bersih))
+    throw new Error(`Nomor WhatsApp "${nomor}" tidak sah. Contoh yang benar: 081234567890 atau 6281234567890.`);
+  return bersih;
+}
+
+/**
+ * Kontrak Fonnte (https://docs.fonnte.com/):
+ *   - Header Authorization diisi token APA ADANYA, bukan "Bearer <token>".
+ *   - Field permintaan bernama "target" dan "message", bukan "to".
+ *   - Fonnte bisa membalas HTTP 200 tapi tetap gagal - field "status" di dalam
+ *     body bernilai false, misalnya nomor tidak valid atau device terputus.
+ *     Kegagalan semacam itu harus ditangkap juga, bukan hanya kode HTTP.
+ *
+ * Ini satu-satunya fungsi yang perlu diganti kalau vendor gateway berpindah -
+ * seluruh kode lain memanggil kirimKeGateway(nomor, teks) tanpa tahu detail
+ * vendornya.
+ */
 async function kirimKeGateway(nomor, teks) {
   const r = await fetch(process.env.WA_GATEWAY_URL, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', authorization: `Bearer ${process.env.WA_GATEWAY_TOKEN}` },
-    body: JSON.stringify({ to: nomor, message: teks }),
+    headers: { 'content-type': 'application/json', authorization: process.env.WA_GATEWAY_TOKEN },
+    body: JSON.stringify({ target: nomor, message: teks }),
     signal: AbortSignal.timeout(20_000),
   });
-  if (!r.ok) throw new Error(`Gateway membalas ${r.status}`);
-  return (await r.text()).slice(0, 500);
+
+  const teksBalasan = await r.text();
+  if (!r.ok) throw new Error(`Fonnte membalas HTTP ${r.status}: ${teksBalasan.slice(0, 300)}`);
+
+  let data = null;
+  try { data = JSON.parse(teksBalasan); } catch { /* balasan bukan JSON, biarkan null */ }
+  if (data && data.status === false)
+    throw new Error(`Fonnte menolak: ${data.reason || data.detail || teksBalasan.slice(0, 300)}`);
+
+  return teksBalasan.slice(0, 500);
 }
 
 /**
