@@ -21,6 +21,7 @@ import { rute as lampiran } from './routes/lampiran.js';
 import { rute as surat } from './routes/surat.js';
 import { jadwalkanSinkron } from './lib/sinkronSales.js';
 import { jalankanPekerjaWa } from './lib/wa.js';
+import { jadwalkanPengingat } from './lib/pengingat.js';
 
 const app = express();
 // Helmet default melarang frame-src dan object-src selain 'self', sehingga
@@ -93,4 +94,5 @@ app.listen(port, () => {
   console.log(`Budget Tracker CBS berjalan di :${port}`);
   jadwalkanSinkron();
   jalankanPekerjaWa();
+  jadwalkanPengingat();
 });
