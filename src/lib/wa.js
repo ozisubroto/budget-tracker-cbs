@@ -14,6 +14,27 @@ import { q } from './db.js';
 
 export const waAktif = () => Boolean(process.env.WA_GATEWAY_URL && process.env.WA_GATEWAY_TOKEN);
 
+/**
+ * Menormalkan nomor WhatsApp ke bentuk yang diterima gateway: angka polos
+ * diawali kode negara, tanpa "+", "0" di depan, spasi, atau tanda pisah.
+ *
+ * Dipanggil sekali saat nomor disimpan (PATCH /master/pengguna), bukan setiap
+ * kali dikirim - supaya seluruh kode di hilir cukup mengasumsikan satu bentuk.
+ * Mengembalikan null untuk input kosong, dan melempar pesan yang jelas kalau
+ * polanya tidak masuk akal - lebih baik ditolak saat disimpan daripada gagal
+ * kirim diam-diam berbulan-bulan kemudian.
+ */
+export function normalisasiNoWa(nomor) {
+  if (nomor === null || nomor === undefined || String(nomor).trim() === '') return null;
+  let bersih = String(nomor).replace(/[\s\-().]/g, '');
+  if (bersih.startsWith('+')) bersih = bersih.slice(1);
+  if (bersih.startsWith('0')) bersih = '62' + bersih.slice(1);
+  if (!bersih.startsWith('62')) bersih = '62' + bersih;
+  if (!/^62\d{8,14}$/.test(bersih))
+    throw new Error(`Nomor WhatsApp "${nomor}" tidak sah. Contoh yang benar: 081234567890 atau 6281234567890.`);
+  return bersih;
+}
+
 async function kirimKeGateway(nomor, teks) {
   const r = await fetch(process.env.WA_GATEWAY_URL, {
     method: 'POST',
