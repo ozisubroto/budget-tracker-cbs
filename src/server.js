@@ -22,7 +22,19 @@ import { jadwalkanSinkron } from './lib/sinkronSales.js';
 import { jalankanPekerjaWa } from './lib/wa.js';
 
 const app = express();
-app.use(helmet());
+// Helmet default melarang frame-src dan object-src selain 'self', sehingga
+// <iframe src="blob:..."> untuk pratinjau PDF ditolak peramban dengan pesan
+// "This content is blocked". blob: perlu diizinkan eksplisit di kedua arah.
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      'frame-src': ["'self'", 'blob:'],
+      'object-src': ["'self'", 'blob:'],
+      'img-src': ["'self'", 'data:', 'blob:'],
+    },
+  },
+}));
 app.use(cors({ origin: process.env.CORS_ORIGIN?.split(',') ?? true, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 
