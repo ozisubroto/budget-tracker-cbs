@@ -15,12 +15,12 @@ rute.post('/masuk', async (req, res) => {
   if (!p || !(await bcrypt.compare(sandi, p.password_hash)))
     return res.status(401).json({ pesan: 'Email atau kata sandi tidak cocok.' });
 
-  res.json({ token: buatToken(p), pengguna: { id: p.id, nama: p.nama, peran: p.peran } });
+  res.json({ token: buatToken(p), pengguna: { id: p.id, nama: p.nama, peran: p.peran, jabatan: p.jabatan } });
 });
 
 rute.get('/saya', wajibLogin, async (req, res) => {
   const { rows } = await q(
-    `SELECT p.id, p.nama, p.email, p.peran, p.no_wa,
+    `SELECT p.id, p.nama, p.email, p.peran, p.jabatan, p.no_wa,
             COALESCE(json_agg(json_build_object('peran', d2.peran, 'nama', d2.nama, 'selesai', d.selesai))
                      FILTER (WHERE d.id IS NOT NULL), '[]') AS delegasi_diterima
        FROM pengguna p

@@ -146,14 +146,16 @@ rute.patch('/kategori/:id', wajibPeran('super_admin'), async (req, res) => {
 });
 
 rute.get('/pengguna', wajibPeran('super_admin', 'atasan_1', 'atasan_2', 'atasan_3', 'finance', 'admin'), async (_req, res) => {
-  const { rows } = await q('SELECT id, nama, email, peran, no_wa, aktif FROM pengguna ORDER BY peran');
+  const { rows } = await q('SELECT id, nama, email, peran, jabatan, no_wa, aktif FROM pengguna ORDER BY peran');
   res.json(rows);
 });
 
 rute.patch('/pengguna/:id', wajibPeran('super_admin'), async (req, res) => {
   const { rows } = await q(
-    'UPDATE pengguna SET nama = COALESCE($1, nama), no_wa = COALESCE($2, no_wa), aktif = COALESCE($3, aktif) WHERE id = $4 RETURNING id, nama, email, peran, no_wa, aktif',
-    [req.body?.nama ?? null, req.body?.no_wa ?? null, req.body?.aktif ?? null, req.params.id],
+    `UPDATE pengguna SET nama = COALESCE($1, nama), jabatan = COALESCE($2, jabatan),
+            no_wa = COALESCE($3, no_wa), aktif = COALESCE($4, aktif)
+      WHERE id = $5 RETURNING id, nama, email, peran, jabatan, no_wa, aktif`,
+    [req.body?.nama ?? null, req.body?.jabatan ?? null, req.body?.no_wa ?? null, req.body?.aktif ?? null, req.params.id],
   );
   if (!rows.length) return res.status(404).json({ pesan: 'Pengguna tidak ditemukan.' });
   res.json(rows[0]);
