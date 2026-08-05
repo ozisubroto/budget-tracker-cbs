@@ -111,6 +111,12 @@ git push -u origin main
 command, pemeriksaan kesehatan ke `/sehat`, dan restart saat gagal. Skema selalu
 mengikuti kode yang di-deploy tanpa langkah manual.
 
+## Identitas pengguna
+
+Nama dan jabatan tampil di dropdown akun pojok kanan atas, beserta tombol keluar
+aplikasi. Diatur lewat migrasi `db/004_jabatan.sql`, dan dapat diubah lagi oleh
+Super Admin lewat `PATCH /api/master/pengguna/:id`.
+
 ## Sebelum pengajuan pertama
 
 Master penerima wajib diisi lebih dulu, kalau tidak Admin tidak punya apa pun
