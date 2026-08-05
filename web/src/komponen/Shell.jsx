@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { sesi, api, PERAN } from '../api.js';
 
@@ -38,6 +38,47 @@ const MENU = [
   { ke: '/delegasi', label: 'Delegasi', ikon: 'delegasi', peran: '*' },
   { ke: '/pengaturan', label: 'Pengaturan', ikon: 'atur', peran: ['super_admin', 'atasan_3'] },
 ];
+
+function AkunPengguna({ p, inisial, nav }) {
+  const [buka, setBuka] = useState(false);
+  const ref = useRef();
+  useEffect(() => {
+    const klik = (e) => { if (ref.current && !ref.current.contains(e.target)) setBuka(false); };
+    window.addEventListener('mousedown', klik);
+    return () => window.removeEventListener('mousedown', klik);
+  }, []);
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button className="avatar" onClick={() => setBuka((b) => !b)} title={`${p.nama} — ${p.jabatan || PERAN[p.peran]}`}>
+        {inisial}
+      </button>
+      {buka && (
+        <div style={{
+          position: 'absolute', right: 0, top: 42, background: 'var(--surface)', border: '1px solid var(--line)',
+          borderRadius: 'var(--r-ctl)', boxShadow: '0 8px 24px rgba(11,11,12,.12)', minWidth: 220, zIndex: 30, padding: 6,
+        }}>
+          <div style={{ padding: '10px 12px 8px' }}>
+            <div style={{ fontWeight: 600, fontSize: 13 }}>{p.nama}</div>
+            <div className="sub">{p.jabatan || PERAN[p.peran]}</div>
+          </div>
+          <div className="rule" style={{ margin: '4px 6px' }} />
+          <button onClick={() => { if (confirm('Keluar dari aplikasi?')) { sesi.hapus(); nav('/masuk'); } }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '9px 12px', border: 0,
+              background: 'transparent', color: 'var(--red)', fontWeight: 600, fontSize: 12.5, cursor: 'pointer',
+              borderRadius: 8, textAlign: 'left',
+            }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" />
+            </svg>
+            Keluar aplikasi
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Shell({ judul, aksi, anak }) {
   const [lipat, setLipat] = useState(localStorage.getItem('bt_lipat') === '1');
@@ -101,10 +142,7 @@ export default function Shell({ judul, aksi, anak }) {
             </svg>
             {belum > 0 && <i className="dot-alert">{belum > 9 ? '9+' : belum}</i>}
           </button>
-          <button className="avatar" title={`${p.nama} — ${PERAN[p.peran]}`}
-            onClick={() => { if (confirm('Keluar dari aplikasi?')) { sesi.hapus(); nav('/masuk'); } }}>
-            {inisial}
-          </button>
+          <AkunPengguna p={p} inisial={inisial} nav={nav} />
         </div>
         {anak}
       </main>
